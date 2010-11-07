@@ -26,13 +26,20 @@ def pickout_delimiter( numbers) :
 
     ret = [ ]
 
-    ret.append(numbers[0])
+    head = numbers[0]
+    tail = numbers[-1]
+
+
+    ret.append(head)
 
     for i in range(1, length-1) :
 
         #if numbers[i] - numbers[i-1] >1 or numbers[i+1] - numbers[i] > 1:
         if numbers[i] - numbers[i-1] >1 :
             ret.append( numbers[i] )
+
+    if tail not in ret:
+        ret.append(tail)
 
     return ret
 
@@ -76,7 +83,14 @@ for shengmu in shengmus:
     if chars:
         delimiters = pickout_delimiter (chars)
         print "%s: contain %d chars" % (shengmu, len(chars) )
-        print "%s: [%s] " % ( shengmu, delimiters )
+        #print "%s: [%s] " % ( shengmu, delimiters )
+
+        result = ""
+        for delimiter in delimiters:
+            result += "0x%x, " % delimiter
+
+        print result
+
         #print "%s: [%x , %x] " % ( shengmu, chars[0], chars[-1] )
 
 
