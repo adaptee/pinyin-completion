@@ -1,0 +1,305 @@
+#!/usr/bin/env python2
+# -*- coding:utf-8 -*-
+"""
+shaozx@gmail.com 2009-10-08
+
+用拼音补全命令行中的中文名称和路径
+
+实验目录如下：
+biff@lenovo:/domain/WorkSpace$ ls
+SVN培训  全球眼  浙江建行  浙江农信
+
+使用: (输完后按 TAB 键自动补全)
+   cd S     <tab>             进入[SVN培训]
+   cd q     <tab>             进入[全球眼]
+   cd z     <tab>             自动补全[浙江]
+   cd zj    <tab><tab>        提示[浙江建行 浙江农信]备选
+   cd 浙江j <tab>             进入[浙江建行]
+   cd zjj   <tab>             进入[浙江建行]
+   cd zj1   <tab>             进入[浙江建行]
+   cd zj2   <tab>             进入[浙江农信]
+
+  2009-05-08修订  取不到拼音的汉字匹配任何字符
+  2009-05-07新增  名称中有中文全角,可以用英文符号补全
+  2009-05-06修订  解决数字序号定位时借位的问题
+  2009-08-30新增  增加多音字支持，比如“音乐”
+                  ((遇到有未被收入的多音字，请邮件联系我))
+  2009-08-31新增  增加模糊拼音支持，比如'n'->'l'
+                  ((需手工增加环境变量，配置方法见后面说明))
+
+安装:
+   直接执行 sh install.sh 进行安装;
+
+如需模糊拼音支持，在系统环境变量中增加匹配的列表，对 n/l 进行模糊匹配
+export CHSDIR="{ 'n':'l' }"
+多个匹配对之间用逗号隔开：
+export CHSDIR="{ 'n':'l','f':'p' }"
+
+
+问题：
+ 1、多音字未解决,比如[浙江建行]要输入[zjjx]; ((已解决))
+ 2、大字符集输入使用变通的方法(取不到拼音的汉字匹配任何字符)
+
+蔡国权/ 蔡依林/ 陈百强/ 陈楚生/ 陈慧琳/ 陈坤/   陈淑桦/ 成龙/
+蔡琴/   草蜢/   陈柏宇/ 陈海铃/ 陈慧娴/ 陈倩倩/ 陈小春/
+ 如上,因为"蜢"和"倩"都是"?",[草蜢]无法用[cm]进入,只能用[c4]进入
+ 如果输入[cm<tab>],会提示[草蜢]和[陈倩倩],这时用[cm1]进入
+ 如果输入[cq<tab>],会提示[蔡琴][草蜢]和[陈倩倩]，同样用数字选择
+
+
+祝Linux之行一路顺风!
+有问题邮件联系!
+
+
+"""
+
+
+# [HACK]
+
+# basic idea : match by pinyin acronym
+
+# [1] for each subentries in current directory,
+#  transform its basename by PinYin-Acronym:
+# for example :  "银河英雄传说" ==> "yhyycs"
+
+# [2] compare this pinyin-acronym with what user has input, if match, this
+# subentry should be consider as one candidate for completion
+
+import os
+import sys
+import locale
+
+POLYPHONE = { u"龟":u"jgq", u"咯":u"gkl", u"轧":u"gyz", u"单":u"dcs",
+        u"腌":u"ay", u"阿":u"ae", u"艾":u"ay", u"扒":u"bp", u"膀":u"bp",
+        u"磅":u"bp", u"堡":u"bp", u"刨":u"bp", u"暴":u"bp", u"泌":u"bm",
+        u"辟":u"bp", u"扁":u"bp", u"便":u"bp",              u"骠":u"bp",
+        u"泊":u"bp", u"藏":u"cz", u"曾":u"cz", u"禅":u"cs", u"裳":u"cs",
+        u"剿":u"cj", u"嘲":u"cz", u"车":u"cj", u"铛":u"cd", u"乘":u"cs",
+        u"澄":u"cd", u"匙":u"cs", u"臭":u"cx", u"畜":u"cx", u"幢":u"cz",
+        u"椎":u"cz", u"兹":u"cz", u"伺":u"cs", u"枞":u"cz", u"攒":u"cz",
+        u"撮":u"cz", u"沓":u"dt",              u"叨":u"dt", u"钿":u"dt",
+        u"调":u"dt", u"囤":u"dt", u"否":u"fp", u"脯":u"fp", u"芥":u"gj",
+        u"扛":u"gk", u"革":u"gj", u"给":u"gj", u"颈":u"gj", u"枸":u"gj",
+        u"谷":u"gy", u"鹄":u"gh", u"纶":u"gl", u"莞":u"gw", u"桧":u"gh",
+        u"咳":u"hk", u"吭":u"hk", u"行":u"hx", u"巷":u"hx", u"合":u"hg",
+        u"红":u"hg", u"虹":u"hj", u"会":u"hk",              u"矜":u"jq",
+        u"稽":u"jq", u"缉":u"jq", u"亟":u"jq", u"茄":u"jq", u"侥":u"jy",
+        u"缴":u"jz", u"解":u"jx", u"趄":u"qj", u"咀":u"jz", u"卡":u"kq",
+        u"壳":u"kq", u"溃":u"kh", u"括":u"kg", u"蔓":u"mw", u"秘":u"mb",
+        u"粘":u"nz", u"拗":u"na", u"弄":u"nl", u"炮":u"pb", u"屏":u"pb",
+        u"曝":u"pb", u"瀑":u"pb", u"栖":u"qx", u"蹊":u"qx", u"奇":u"qj",
+        u"荨":u"qx", u"纤":u"qx", u"强":u"qj", u"圈":u"qj", u"葚":u"sr",
+        u"厦":u"sx", u"省":u"sx", u"识":u"sz", u"属":u"sz", u"忪":u"sz",
+        u"宿":u"sx", u"汤":u"st", u"提":u"td", u"圩":u"wx", u"尾":u"wy",
+        u"尉":u"wy", u"系":u"xj", u"虾":u"xh", u"吓":u"xh", u"校":u"xj",
+        u"吁":u"xy", u"叶":u"yx", u"遗":u"yw", u"乐":u"yl", u"颤":u"zc",
+        u"殖":u"zs" }
+
+DOUBLE_WIDTH = { u"～":u"~", u"！":u"!", u"＠":u"@", u"＃":u"#", u"＄":u"$",
+        u"％":u"%", u"＆":u"&", u"＊":u"*", u"（":u"(", u"）":u")", u"＿":u"_",
+        u"－":u"-", u"＋":u"+", u"［":u"[", u"］":u"]", u"＜":u"<", u"＞":u">",
+        u"？":u"?", u"，":u",", u"。":u".", u"／":u"/", u"、":u"," }
+
+# fuzzy pinyin
+FUZZY = {}
+try:
+    FUZZY = eval( os.getenv("CHSDIR") )
+    FUZZY.keys()
+except StandardError:
+    FUZZY = {}
+
+def transform_double_width(uni_char):
+    "transform double-width char into its single-width equivalent  "
+    try :
+        return DOUBLE_WIDTH[uni_char]
+    except KeyError:
+        return uni_char
+
+def polyphonize(uni_char):
+    "get polyphone of a char, if it really has"
+    try :
+        return POLYPHONE[uni_char]
+    except KeyError:
+        return uni_char
+
+
+# 辅音 gb18030
+#[ "ch","sh", "zh"]
+# 0xb3a1< ch < 0xb433
+# < zh   < 0x
+# < zh   < 0x
+
+def pinyinize(uni_char):
+    "get pinyin-initial for Chinese characters"
+
+    try:
+        gb_char = uni_char.encode("gb18030")
+    except UnicodeEncodeError :
+        return uni_char
+
+    if gb_char < "\xb0\xa1": return uni_char
+    if gb_char > "\xd7\xf9": return u"?"
+    if gb_char < "\xb0\xc5": return u"a"
+    if gb_char < "\xb2\xc1": return u"b"
+    if gb_char < "\xb4\xee": return u"c"
+    if gb_char < "\xb6\xea": return u"d"
+    if gb_char < "\xb7\xa2": return u"e"
+    if gb_char < "\xb8\xc1": return u"f"
+    if gb_char < "\xb9\xfe": return u"g"
+    if gb_char < "\xbb\xf7": return u"h"
+    if gb_char < "\xbf\xa6": return u"j"
+    if gb_char < "\xc0\xac": return u"k"
+    if gb_char < "\xc2\xe8": return u"l"
+    if gb_char < "\xc4\xc3": return u"m"
+    if gb_char < "\xc5\xb6": return u"n"
+    if gb_char < "\xc5\xbe": return u"o"
+    if gb_char < "\xc6\xda": return u"p"
+    if gb_char < "\xc8\xbb": return u"q"
+    if gb_char < "\xc8\xf6": return u"r"
+    if gb_char < "\xcb\xfa": return u"s"
+    if gb_char < "\xcd\xda": return u"t"
+    if gb_char < "\xce\xf4": return u"w"
+    if gb_char < "\xd1\xb9": return u"x"
+    if gb_char < "\xd4\xd1": return u"y"
+    if gb_char < "\xd7\xfa": return u"z"
+
+    return uni_char
+
+
+def fuzzynize(pinyin):
+    "fuzzy one pinyin to another"
+    try :
+        return FUZZY[pinyin]
+    except KeyError:
+        return pinyin
+
+def acronymize(uni_char):
+    "get single-byte acronym for one unicode char"
+
+    # replace double-width chars with its single-width equivalents
+    uni_char = transform_double_width(uni_char)
+    # if ascii, return immediately
+    if uni_char <  u"\x80" :
+        return uni_char
+
+    uni_char = polyphonize(uni_char)
+    # special case for chars having polyphone
+    if len(uni_char) > 1:
+        return u"`%s`" % uni_char
+
+    # for most cases.
+    return fuzzynize( pinyinize(uni_char) )
+
+def get_acronym(string):
+    "get acronym for unicode string"
+    try:
+        string = unicode(string,"utf-8")
+    except UnicodeDecodeError:
+        return string
+
+    acronym = ""
+
+    for char in string:
+        acronym += acronymize(char)
+
+    return acronym.encode("utf-8")
+
+
+if __name__ == '__main__':
+
+    # chsdir <dirattr> <already_input_part>
+    if len(sys.argv) != 3 :
+        sys.exit(1)
+
+    dironly = sys.argv[1]
+    path     = sys.argv[2].replace("\\","")
+
+    # support fuzzy pinyin
+    path = "".join( [ fuzzynize(x) for x in path] )
+
+    index = None
+    effective_path  = path
+    # deal with special form such as  'xxx/cm1'
+    if len(path) > 1 and '0' < path[-1] <= '9':
+        index          = int(path[-1])
+        effective_path = path[:-1]
+
+    dirname            = os.path.dirname(path)
+    basename           = os.path.basename(path)
+    effective_basename = os.path.basename(effective_path)
+
+    if not dirname :
+        dirname = "./"
+
+    # get all top-level subentries(non-recursive)
+    try:
+        entries = os.listdir(dirname)
+    except OSError:
+        sys.exit(0)
+
+    # if an entry with the exact basename already exist, do nothing
+    if basename in entries or effective_basename in entries :
+        sys.exit(0)
+
+    basename_acronym = get_acronym(effective_basename).replace("\\","")
+
+    #print "basename acronym : %s" % basename_acronym
+
+    reply = []
+
+    for entry in entries:
+
+        entry_acronym = get_acronym(entry).replace("\\","")
+
+        # ignore entry which does not contain Chinese character.
+        if entry_acronym == entry :
+            continue
+
+        i = j = 0
+
+        while i < len(basename_acronym) and j < len(entry_acronym) :
+
+            # dealing with polyphone
+            if entry_acronym[j] == "`":
+                end = entry_acronym.index("`", j+1)
+                if entry_acronym.find( basename_acronym[i], j, end ) > 0 :
+                    i += 1
+                    j = end + 1
+                    continue
+            else:
+                #if basename_acronym[i] == entry_acronym[j] or  entry_acronym[i] == "?":
+                if ( basename_acronym[i] == entry_acronym[j] or
+                     entry_acronym[i] == "?" or
+                     basename_acronym[i] == "?" ):
+                    i += 1
+                    j += 1
+                    continue
+
+            if basename_acronym[i] != entry[i] :
+                break
+
+        # one match is found
+        if i == len(basename_acronym)  :
+            tmp = os.path.join(dirname, entry).replace("./", "")
+            # if the caller is only interested with folders
+            if dironly == "x-d" and not os.path.isdir(tmp):
+                continue
+
+            reply.append( tmp )
+
+    try:
+        locale.setlocale(locale.LC_ALL, "")
+    except StandardError:
+        pass
+
+    reply.sort(key=locale.strxfrm)
+
+    if index :
+        try:
+            print ( reply[index - 1] )
+        except IndexError:
+            # return the last candidate when index is out of range
+            print ( reply[:-1])
+    else:
+        print ( "\n".join(reply) )
+
