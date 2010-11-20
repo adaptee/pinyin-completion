@@ -50,6 +50,9 @@ import locale
 
 import pinyin
 
+_, default_encoding = locale.getdefaultlocale()
+
+
 DOUBLE_WIDTH = {
                     u"～" : u"~" ,
                     u"！" : u"!" ,
@@ -127,7 +130,7 @@ def acronymize(uni_char):
 def get_acronym(string):
     "get acronym for unicode string"
     try:
-        string = unicode(string,"utf-8")
+        string = unicode(string, default_encoding)
     except UnicodeDecodeError:
         return string
 
@@ -136,7 +139,7 @@ def get_acronym(string):
     for char in string:
         acronym += acronymize(char)
 
-    return acronym.encode("utf-8")
+    return acronym
 
 
 if __name__ == '__main__':
@@ -210,12 +213,12 @@ if __name__ == '__main__':
 
         # one match is found
         if i == len(basename_acronym)  :
-            tmp = os.path.join(dirname, entry).replace("./", "")
+            candicate = os.path.join(dirname, entry).replace("./", "")
             # if the caller is only interested with folders
-            if dironly == "x-d" and not os.path.isdir(tmp):
+            if dironly == "x-d" and not os.path.isdir(candicate):
                 continue
 
-            reply.append( tmp )
+            reply.append( candicate )
 
     try:
         locale.setlocale(locale.LC_ALL, "")
