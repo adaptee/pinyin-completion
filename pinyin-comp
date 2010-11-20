@@ -110,6 +110,7 @@ def acronymize(uni_char):
 
     # replace double-width chars with its single-width equivalents
     uni_char = transform_double_width(uni_char)
+
     # if ascii, return immediately
     if uni_char <  u"\x80" :
         return uni_char
@@ -176,8 +177,6 @@ if __name__ == '__main__':
 
     basename_acronym = get_acronym(effective_basename).replace("\\","")
 
-    #print "basename acronym : %s" % basename_acronym
-
     reply = []
 
     for entry in entries:
@@ -201,7 +200,6 @@ if __name__ == '__main__':
                     continue
             else:
                 if ( basename_acronym[i] == entry_acronym[j] or
-                     entry_acronym[i] == "?" or
                      basename_acronym[i] == "?" ):
                     i += 1
                     j += 1
