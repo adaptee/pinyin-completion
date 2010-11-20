@@ -1,69 +1,48 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 # -*- coding:utf-8 -*-
 """
-shaozx@gmail.com 2009-10-08
+complete path containing Chinese by acronym composed of pinyin initials
+
+a fork of chsdir by shaozx@gmail.com
+(http://code.google.com/p/easyscripts/wiki/chsdir)
 
 用拼音补全命令行中的中文名称和路径
 
-实验目录如下：
-biff@lenovo:/domain/WorkSpace$ ls
+实验目录：$ ls ./
 SVN培训  全球眼  浙江建行  浙江农信
 
 使用: (输完后按 TAB 键自动补全)
-   cd S     <tab>             进入[SVN培训]
-   cd q     <tab>             进入[全球眼]
-   cd z     <tab>             自动补全[浙江]
-   cd zj    <tab><tab>        提示[浙江建行 浙江农信]备选
-   cd 浙江j <tab>             进入[浙江建行]
-   cd zjj   <tab>             进入[浙江建行]
-   cd zj1   <tab>             进入[浙江建行]
-   cd zj2   <tab>             进入[浙江农信]
-
-  2009-05-08修订  取不到拼音的汉字匹配任何字符
-  2009-05-07新增  名称中有中文全角,可以用英文符号补全
-  2009-05-06修订  解决数字序号定位时借位的问题
-  2009-08-30新增  增加多音字支持，比如“音乐”
-                  ((遇到有未被收入的多音字，请邮件联系我))
-  2009-08-31新增  增加模糊拼音支持，比如'n'->'l'
-                  ((需手工增加环境变量，配置方法见后面说明))
-
-安装:
-   直接执行 sh install.sh 进行安装;
-
-如需模糊拼音支持，在系统环境变量中增加匹配的列表，对 n/l 进行模糊匹配
-export CHSDIR="{ 'n':'l' }"
-多个匹配对之间用逗号隔开：
-export CHSDIR="{ 'n':'l','f':'p' }"
+    cd S     <tab>             进入[SVN培训]
+    cd q     <tab>             进入[全球眼]
+    cd z     <tab>             自动补全[浙江]
+    cd zj    <tab><tab>        提示[浙江建行 浙江农信]备选
+    cd zj1   <tab>             进入[浙江建行]
+    cd zj2   <tab>             进入[浙江农信]
+    cd 浙江j <tab>             进入[浙江建行]
+    cd zjj   <tab>             进入[浙江建行]
 
 
-问题：
- 1、多音字未解决,比如[浙江建行]要输入[zjjx]; ((已解决))
- 2、大字符集输入使用变通的方法(取不到拼音的汉字匹配任何字符)
+如需模糊拼音支持，定义环境变量FUZZY
+例如，对 n/l 进行模糊匹配：export FUZZY="{ 'n':'l' }"
+多个匹配对之间用逗号隔开： export FUZZY="{ 'n':'l','f':'p' }"
 
-蔡国权/ 蔡依林/ 陈百强/ 陈楚生/ 陈慧琳/ 陈坤/   陈淑桦/ 成龙/
-蔡琴/   草蜢/   陈柏宇/ 陈海铃/ 陈慧娴/ 陈倩倩/ 陈小春/
- 如上,因为"蜢"和"倩"都是"?",[草蜢]无法用[cm]进入,只能用[c4]进入
- 如果输入[cm<tab>],会提示[草蜢]和[陈倩倩],这时用[cm1]进入
- 如果输入[cq<tab>],会提示[蔡琴][草蜢]和[陈倩倩]，同样用数字选择
+Changelog
 
+    2009-05-08修订  取不到拼音的汉字匹配任何字符
+    2009-05-07新增  名称中有中文全角,可以用英文符号补全
+    2009-05-06修订  解决数字序号定位时借位的问题
+    2009-08-30新增  增加多音字支持，比如“音乐”
+                    ((遇到有未被收入的多音字，请邮件联系我))
+    2009-08-31新增  增加模糊拼音支持，比如'n'->'l'
+                    ((需手工增加环境变量，配置方法见后面说明))
 
-祝Linux之行一路顺风!
-有问题邮件联系!
+    2010-11-17 fork :D
 
+    2010-11-18 use pre-generated pinyin table to get pinyin initial,
+               it make the logic cleaner and easier to maintain,
+               though it introduce extra delay which user can hardly feel.
 
 """
-
-
-# [HACK]
-
-# basic idea : match by pinyin acronym
-
-# [1] for each subentries in current directory,
-#  transform its basename by PinYin-Acronym:
-# for example :  "银河英雄传说" ==> "yhyycs"
-
-# [2] compare this pinyin-acronym with what user has input, if match, this
-# subentry should be consider as one candidate for completion
 
 import os
 import sys
@@ -71,15 +50,35 @@ import locale
 
 import table
 
-DOUBLE_WIDTH = { u"～":u"~", u"！":u"!", u"＠":u"@", u"＃":u"#", u"＄":u"$",
-        u"％":u"%", u"＆":u"&", u"＊":u"*", u"（":u"(", u"）":u")", u"＿":u"_",
-        u"－":u"-", u"＋":u"+", u"［":u"[", u"］":u"]", u"＜":u"<", u"＞":u">",
-        u"？":u"?", u"，":u",", u"。":u".", u"／":u"/", u"、":u"," }
+DOUBLE_WIDTH = {
+                    u"～" : u"~" ,
+                    u"！" : u"!" ,
+                    u"＠" : u"@" ,
+                    u"＃" : u"#" ,
+                    u"＄" : u"$" ,
+                    u"％" : u"%" ,
+                    u"＆" : u"&" ,
+                    u"＊" : u"*" ,
+                    u"（" : u"(" ,
+                    u"）" : u")" ,
+                    u"＿" : u"_" ,
+                    u"－" : u"-" ,
+                    u"＋" : u"+" ,
+                    u"［" : u"[" ,
+                    u"］" : u"]" ,
+                    u"＜" : u"<" ,
+                    u"＞" : u">" ,
+                    u"？" : u"?" ,
+                    u"，" : u"," ,
+                    u"。" : u"." ,
+                    u"／" : u"/" ,
+                    u"、" : "u"  ,
+                }
 
 # fuzzy pinyin
 FUZZY = {}
 try:
-    FUZZY = eval( os.getenv("CHSDIR") )
+    FUZZY = eval( os.getenv("FUZZY") )
     FUZZY.keys()
 except StandardError:
     FUZZY = {}
@@ -99,7 +98,7 @@ def fuzzynize(pinyin):
         return pinyin
 
 def get_pinyin_initials(uni_char):
-
+    "get the initial of Chinese pinyin"
     try:
         pinyin_initials = table.pinyin_initial[uni_char]
         return "".join(pinyin_initials)
@@ -201,7 +200,6 @@ if __name__ == '__main__':
                     j = end + 1
                     continue
             else:
-                #if basename_acronym[i] == entry_acronym[j] or  entry_acronym[i] == "?":
                 if ( basename_acronym[i] == entry_acronym[j] or
                      entry_acronym[i] == "?" or
                      basename_acronym[i] == "?" ):

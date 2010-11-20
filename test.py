@@ -23,23 +23,29 @@ def str2int(s):
 def pickout_delimiter( numbers) :
 
     length = len(numbers)
-
     ret = [ ]
 
     head = numbers[0]
     tail = numbers[-1]
 
+    base = 0
 
-    ret.append(head)
+    #ret.append(head)
 
     for i in range(1, length-1) :
 
-        #if numbers[i] - numbers[i-1] >1 or numbers[i+1] - numbers[i] > 1:
         if numbers[i] - numbers[i-1] >1 :
-            ret.append( numbers[i] )
 
-    if tail not in ret:
-        ret.append(tail)
+            continous_length = (i-1) - base + 1
+            #ret.append( (numbers[base], continous_length) )
+            ret.append( (continous_length, numbers[base] ) )
+
+            base = i
+
+    ret.append( (1,tail)  )
+
+    # sort by continous length
+    ret.sort()
 
     return ret
 
@@ -66,7 +72,7 @@ for line in lines :
     shengmu = get_shengmu(accent)
 
     try :
-        gbkchar = unichar.encode("GBK")
+        gbkchar = unichar.encode("GB18030")
         distribution[shengmu].append ( str2int(gbkchar) )
     except:
         pass
@@ -75,23 +81,21 @@ shengmus = distribution.keys()
 shengmus.sort()
 
 for shengmu in shengmus:
+
     distribution[shengmu].sort()
     chars = distribution[shengmu]
 
-    #delimiters = [  i for i in range(len(chars) and chars[i]  ) ]
-
-    if chars:
+    if chars and shengmu == 'zh' :
         delimiters = pickout_delimiter (chars)
         print "%s: contain %d chars" % (shengmu, len(chars) )
-        #print "%s: [%s] " % ( shengmu, delimiters )
+        print "[%s]" % chars
 
         result = ""
+
+        delimiters = delimiters[-5:]
+
         for delimiter in delimiters:
-            result += "0x%x, " % delimiter
+            result += "(%d,0x%x) " % (delimiter[0], delimiter[1])
 
         print result
-
-        #print "%s: [%x , %x] " % ( shengmu, chars[0], chars[-1] )
-
-
 
