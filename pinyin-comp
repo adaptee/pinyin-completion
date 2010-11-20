@@ -100,8 +100,8 @@ def fuzzynize(pinyin):
 def get_pinyin_initials(uni_char):
     "get the initial of Chinese pinyin"
     try:
-        pinyin_initials = table.pinyin_initial[uni_char]
-        return "".join(pinyin_initials)
+        pinyin_initial = table.pinyin_initial[uni_char]
+        return "".join(pinyin_initial)
     except KeyError:
         return uni_char
 
@@ -114,14 +114,14 @@ def acronymize(uni_char):
     if uni_char <  u"\x80" :
         return uni_char
 
-    pinyin_initials = get_pinyin_initials(uni_char)
+    pinyin_initial = get_pinyin_initials(uni_char)
 
     # special case for chars having polyphone
-    if len(pinyin_initials) > 1:
-        return u"`%s`" % pinyin_initials
+    if len(pinyin_initial) > 1:
+        return u"`%s`" % pinyin_initial
 
     # for most cases.
-    return fuzzynize( pinyin_initials )
+    return fuzzynize( pinyin_initial )
 
 def get_acronym(string):
     "get acronym for unicode string"
