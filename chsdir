@@ -69,31 +69,7 @@ import os
 import sys
 import locale
 
-POLYPHONE = { u"龟":u"jgq", u"咯":u"gkl", u"轧":u"gyz", u"单":u"dcs",
-        u"腌":u"ay", u"阿":u"ae", u"艾":u"ay", u"扒":u"bp", u"膀":u"bp",
-        u"磅":u"bp", u"堡":u"bp", u"刨":u"bp", u"暴":u"bp", u"泌":u"bm",
-        u"辟":u"bp", u"扁":u"bp", u"便":u"bp",              u"骠":u"bp",
-        u"泊":u"bp", u"藏":u"cz", u"曾":u"cz", u"禅":u"cs", u"裳":u"cs",
-        u"剿":u"cj", u"嘲":u"cz", u"车":u"cj", u"铛":u"cd", u"乘":u"cs",
-        u"澄":u"cd", u"匙":u"cs", u"臭":u"cx", u"畜":u"cx", u"幢":u"cz",
-        u"椎":u"cz", u"兹":u"cz", u"伺":u"cs", u"枞":u"cz", u"攒":u"cz",
-        u"撮":u"cz", u"沓":u"dt",              u"叨":u"dt", u"钿":u"dt",
-        u"调":u"dt", u"囤":u"dt", u"否":u"fp", u"脯":u"fp", u"芥":u"gj",
-        u"扛":u"gk", u"革":u"gj", u"给":u"gj", u"颈":u"gj", u"枸":u"gj",
-        u"谷":u"gy", u"鹄":u"gh", u"纶":u"gl", u"莞":u"gw", u"桧":u"gh",
-        u"咳":u"hk", u"吭":u"hk", u"行":u"hx", u"巷":u"hx", u"合":u"hg",
-        u"红":u"hg", u"虹":u"hj", u"会":u"hk",              u"矜":u"jq",
-        u"稽":u"jq", u"缉":u"jq", u"亟":u"jq", u"茄":u"jq", u"侥":u"jy",
-        u"缴":u"jz", u"解":u"jx", u"趄":u"qj", u"咀":u"jz", u"卡":u"kq",
-        u"壳":u"kq", u"溃":u"kh", u"括":u"kg", u"蔓":u"mw", u"秘":u"mb",
-        u"粘":u"nz", u"拗":u"na", u"弄":u"nl", u"炮":u"pb", u"屏":u"pb",
-        u"曝":u"pb", u"瀑":u"pb", u"栖":u"qx", u"蹊":u"qx", u"奇":u"qj",
-        u"荨":u"qx", u"纤":u"qx", u"强":u"qj", u"圈":u"qj", u"葚":u"sr",
-        u"厦":u"sx", u"省":u"sx", u"识":u"sz", u"属":u"sz", u"忪":u"sz",
-        u"宿":u"sx", u"汤":u"st", u"提":u"td", u"圩":u"wx", u"尾":u"wy",
-        u"尉":u"wy", u"系":u"xj", u"虾":u"xh", u"吓":u"xh", u"校":u"xj",
-        u"吁":u"xy", u"叶":u"yx", u"遗":u"yw", u"乐":u"yl", u"颤":u"zc",
-        u"殖":u"zs" }
+import table
 
 DOUBLE_WIDTH = { u"～":u"~", u"！":u"!", u"＠":u"@", u"＃":u"#", u"＄":u"$",
         u"％":u"%", u"＆":u"&", u"＊":u"*", u"（":u"(", u"）":u")", u"＿":u"_",
@@ -115,63 +91,20 @@ def transform_double_width(uni_char):
     except KeyError:
         return uni_char
 
-def polyphonize(uni_char):
-    "get polyphone of a char, if it really has"
-    try :
-        return POLYPHONE[uni_char]
-    except KeyError:
-        return uni_char
-
-
-# 辅音 gb18030
-#[ "ch","sh", "zh"]
-# 0xb3a1< ch < 0xb433
-# < zh   < 0x
-# < zh   < 0x
-
-def pinyinize(uni_char):
-    "get pinyin-initial for Chinese characters"
-
-    try:
-        gb_char = uni_char.encode("gb18030")
-    except UnicodeEncodeError :
-        return uni_char
-
-    if gb_char < "\xb0\xa1": return uni_char
-    if gb_char > "\xd7\xf9": return u"?"
-    if gb_char < "\xb0\xc5": return u"a"
-    if gb_char < "\xb2\xc1": return u"b"
-    if gb_char < "\xb4\xee": return u"c"
-    if gb_char < "\xb6\xea": return u"d"
-    if gb_char < "\xb7\xa2": return u"e"
-    if gb_char < "\xb8\xc1": return u"f"
-    if gb_char < "\xb9\xfe": return u"g"
-    if gb_char < "\xbb\xf7": return u"h"
-    if gb_char < "\xbf\xa6": return u"j"
-    if gb_char < "\xc0\xac": return u"k"
-    if gb_char < "\xc2\xe8": return u"l"
-    if gb_char < "\xc4\xc3": return u"m"
-    if gb_char < "\xc5\xb6": return u"n"
-    if gb_char < "\xc5\xbe": return u"o"
-    if gb_char < "\xc6\xda": return u"p"
-    if gb_char < "\xc8\xbb": return u"q"
-    if gb_char < "\xc8\xf6": return u"r"
-    if gb_char < "\xcb\xfa": return u"s"
-    if gb_char < "\xcd\xda": return u"t"
-    if gb_char < "\xce\xf4": return u"w"
-    if gb_char < "\xd1\xb9": return u"x"
-    if gb_char < "\xd4\xd1": return u"y"
-    if gb_char < "\xd7\xfa": return u"z"
-
-    return uni_char
-
-
 def fuzzynize(pinyin):
     "fuzzy one pinyin to another"
     try :
         return FUZZY[pinyin]
     except KeyError:
         return pinyin
+
+def get_pinyin_initials(uni_char):
+
+    try:
+        pinyin_initials = table.pinyin_initial[uni_char]
+        return "".join(pinyin_initials)
+    except KeyError:
+        return uni_char
 
 def acronymize(uni_char):
     "get single-byte acronym for one unicode char"
@@ -182,13 +115,14 @@ def acronymize(uni_char):
     if uni_char <  u"\x80" :
         return uni_char
 
-    uni_char = polyphonize(uni_char)
+    pinyin_initials = get_pinyin_initials(uni_char)
+
     # special case for chars having polyphone
-    if len(uni_char) > 1:
-        return u"`%s`" % uni_char
+    if len(pinyin_initials) > 1:
+        return u"`%s`" % pinyin_initials
 
     # for most cases.
-    return fuzzynize( pinyinize(uni_char) )
+    return fuzzynize( pinyin_initials )
 
 def get_acronym(string):
     "get acronym for unicode string"
