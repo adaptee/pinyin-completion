@@ -48,7 +48,7 @@ import os
 import sys
 import locale
 
-import table
+import pinyin
 
 DOUBLE_WIDTH = {
                     u"～" : u"~" ,
@@ -100,7 +100,7 @@ def fuzzynize(pinyin):
 def get_pinyin_initials(uni_char):
     "get the initial of Chinese pinyin"
     try:
-        pinyin_initial = table.pinyin_initial[uni_char]
+        pinyin_initial = pinyin.pinyin_initial[uni_char]
         return "".join(pinyin_initial)
     except KeyError:
         return uni_char
