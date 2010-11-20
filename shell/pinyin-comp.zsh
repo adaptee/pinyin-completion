@@ -1,6 +1,6 @@
 
 # use pinyin-comp to perform completion based upon pinyin acronym
-function _pinyin()
+function _pinyin_comp()
 {
     # chsdir print one candidate per line
     # this looks weird, bug IFS='\n' does not work in interactive shell
@@ -10,7 +10,7 @@ function _pinyin()
 }
 
 # pinyin-comp is performed as one part of user-expand
-zstyle ':completion:*' user-expand _pinyin
+zstyle ':completion:*' user-expand _pinyin_comp
 
 # omit origianl when showing the resul of user-expand
 zstyle ':completion:*:user-expand:*' tag-order '!original'
