@@ -6,7 +6,7 @@ pinyin_initial = { }
 
 if __name__ == "__main__":
 
-    lines = open("utf8.txt").readlines()
+    lines = open("unicode-hans-pinyin.txt").readlines()
 
     for line in lines :
 
