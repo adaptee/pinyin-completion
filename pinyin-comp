@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 """
-complete path containing Chinese by acronym composed of pinyin initials
+complete path by acronym of pinyin initials
 
 a fork of chsdir by shaozx@gmail.com
 (http://code.google.com/p/easyscripts/wiki/chsdir)
@@ -156,7 +156,7 @@ if __name__ == '__main__':
 
     index = None
     effective_path  = path
-    # deal with special form such as  'xxx/cm1'
+    # deal with special form such as  'xxx/zj1'
     if len(path) > 1 and '0' < path[-1] <= '9':
         index          = int(path[-1])
         effective_path = path[:-1]
