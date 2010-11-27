@@ -136,7 +136,7 @@ def get_acronym(text):
     for char in text:
         acronym += acronymize(char)
 
-    return stringlize(acronym)
+    return acronym
 
 def unicodelize(text):
     "try to convert string into unicode string."
@@ -167,6 +167,7 @@ if __name__ == '__main__':
     dironly = sys.argv[1]
 
     path = sys.argv[2].replace("\\","")
+    path = unicodelize(path)
     # support fuzzy pinyin
     path = "".join( [ fuzzynize(x) for x in path] )
 
@@ -183,7 +184,7 @@ if __name__ == '__main__':
     effective_basename = os.path.basename(effective_path)
 
     if not dirname :
-        dirname = "./"
+        dirname = u"./"
 
     # get all top-level subentries(non-recursive)
     try:
@@ -242,7 +243,9 @@ if __name__ == '__main__':
     except StandardError:
         pass
 
-    reply.sort(key=locale.strxfrm)
+    # when dealing with outer world, always use native encoding
+    reply = [ stringlize(x) for x in reply]
+    reply.sort( key=locale.strxfrm )
 
     if index :
         try:
