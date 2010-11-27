@@ -129,10 +129,11 @@ def acronymize(uni_char):
 
 def get_acronym(string):
     "get acronym for unicode string"
-    try:
-        string = unicode(string, default_encoding)
-    except UnicodeDecodeError:
-        return string
+    if not isinstance(string, unicode):
+        try:
+            string = unicode(string, default_encoding)
+        except UnicodeDecodeError:
+            return string
 
     acronym = ""
 
