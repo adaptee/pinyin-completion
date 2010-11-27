@@ -127,21 +127,36 @@ def acronymize(uni_char):
     # for most cases.
     return fuzzynize( pinyin_initial )
 
-def get_acronym(string):
-    "get acronym for unicode string"
-    if not isinstance(string, unicode):
-        try:
-            string = unicode(string, default_encoding)
-        except UnicodeDecodeError:
-            return string
+def get_acronym(text):
+    "get acronym for text string"
+    text = unicodelize(text)
 
-    acronym = ""
+    acronym = u""
 
-    for char in string:
+    for char in text:
         acronym += acronymize(char)
 
-    return acronym
+    return stringlize(acronym)
 
+def unicodelize(text):
+    "try to convert string into unicode string."
+    if not isinstance(text, unicode):
+        try:
+            return unicode(text, default_encoding)
+        except UnicodeDecodeError:
+            pass
+
+    return text
+
+def stringlize(text):
+    "try to convert unicode string back into string"
+    if isinstance(text, unicode):
+        try:
+            return text.encode(default_encoding)
+        except UnicodeEncodeError:
+            pass
+
+    return text
 
 if __name__ == '__main__':
 
@@ -150,13 +165,14 @@ if __name__ == '__main__':
         sys.exit(1)
 
     dironly = sys.argv[1]
-    path     = sys.argv[2].replace("\\","")
 
+    path = sys.argv[2].replace("\\","")
     # support fuzzy pinyin
     path = "".join( [ fuzzynize(x) for x in path] )
 
-    index = None
-    effective_path  = path
+    index          = None
+    effective_path = path
+
     # deal with special form such as  'xxx/zj1'
     if len(path) > 1 and '0' < path[-1] <= '9':
         index          = int(path[-1])
