@@ -158,6 +158,15 @@ def stringlize(text):
 
     return text
 
+def expand_leading_tilda(path):
+    "expand leading ~/ into $HOME"
+
+    if path and path[0] == '~':
+        home = os.environ['HOME']
+        return os.path.join( home, path[2:])
+    else:
+        return path
+
 if __name__ == '__main__':
 
     # chsdir <dirattr> <already_input_part>
@@ -167,6 +176,7 @@ if __name__ == '__main__':
     dironly = sys.argv[1]
 
     path = sys.argv[2].replace("\\","")
+    path = expand_leading_tilda(path)
     path = unicodelize(path)
     # support fuzzy pinyin
     path = "".join( [ fuzzynize(x) for x in path] )
