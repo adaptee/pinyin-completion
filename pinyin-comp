@@ -159,13 +159,8 @@ def stringlize(text):
     return text
 
 def expand_leading_tilda(path):
-    "expand leading ~/ into $HOME"
-
-    if path and path[0] == '~':
-        home = os.environ['HOME']
-        return os.path.join( home, path[2:])
-    else:
-        return path
+    "expand leading ~/ or ~user/"
+    return os.path.expanduser(path)
 
 if __name__ == '__main__':
 
