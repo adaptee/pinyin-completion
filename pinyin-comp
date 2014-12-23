@@ -162,6 +162,9 @@ def expand_leading_tilda(path):
     "expand leading ~/ or ~user/"
     return os.path.expanduser(path)
 
+def escape_string(candicate):
+    return re.sub(r'([\" \'&])', r'\\\1',candicate)
+
 if __name__ == '__main__':
 
     # chsdir <dirattr> <already_input_part>
@@ -254,10 +257,11 @@ if __name__ == '__main__':
 
     if index :
         try:
-            print ( reply[index - 1] )
+            print (escape_string(reply[index - 1]))
         except IndexError:
             # return the last candidate when index is out of range
-            print ( reply[:-1])
+            pass
     else:
-        print ( "\n".join(reply) )
+        for candicate in reply:
+            print escape_string(candicate)
 
