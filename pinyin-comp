@@ -164,7 +164,7 @@ def expand_leading_tilda(path):
     return os.path.expanduser(path)
 
 def escape_string(candicate):
-    return re.sub(r'([\" \'&])', r'\\\1',candicate)
+    return re.sub(r'([\" |\'&])', r'\\\1',candicate)
 
 if __name__ == '__main__':
 
