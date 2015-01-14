@@ -8,7 +8,7 @@ setup(  name="pinyin-comp",
         description="complete path containing Chinese by pinyin acronym",
         author="Jekyll Wu",
         author_email="adaptee@gmail.com",
-        url="http://www.github.com/adaptee/pinyin-comp",
+        url="http://github.com/adaptee/pinyin-completion",
         packages=['pinyin'],
         scripts=['pinyin-comp'] ,
      )
