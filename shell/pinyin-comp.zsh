@@ -9,6 +9,13 @@ function _pinyin_comp()
     reply=($(pinyin-comp 0 $*))
 }
 
+# force rehash when command not found
+# Refer to http://zshwiki.org/home/examples/compsys/general
+_force_rehash() {
+    (( CURRENT == 1 )) && rehash
+    return 1 # Because we did not really complete anything
+}
+
 # pinyin-comp is performed as one part of user-expand
 zstyle ':completion:*' user-expand _pinyin_comp
 
