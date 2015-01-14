@@ -6,9 +6,9 @@
 
 ### Usage
 
-For bash users, source `shell/pinyin-comp.bash` in your `~/.bashrc`
+For Bash users, source `shell/pinyin-comp.bash` in your `~/.bashrc`
 
-For zsh users, source `shell/pinyin.comp.zsh` in your `~/.zshrc`
+For Zsh users, source `shell/pinyin-comp.zsh` in your `~/.zshrc`
 
 ### Others
 
