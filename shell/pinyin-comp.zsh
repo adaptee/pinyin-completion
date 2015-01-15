@@ -6,7 +6,7 @@ function _pinyin_comp()
     # this looks weird, bug IFS='\n' does not work in interactive shell
     local IFS=$'\n'
 
-    reply=($(pinyin-comp 0 $*))
+    reply=($(pinyin-comp 0 $*) $*)
 }
 
 # force rehash when command not found
@@ -25,7 +25,7 @@ fi
 zstyle ':completion:*' user-expand _pinyin_comp
 
 # omit original and all expansions when showing the result of user-expand
-zstyle ':completion:*:user-expand:*' tag-order '!original all-expansions'
+zstyle ':completion:*:user-expand:*' tag-order expansions
 
 # make use-expand perform as last, when needed
 zstyle ':completion:*' completer \
