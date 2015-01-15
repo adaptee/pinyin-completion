@@ -24,8 +24,8 @@ fi
 # pinyin-comp is performed as one part of user-expand
 zstyle ':completion:*' user-expand _pinyin_comp
 
-# omit origianl when showing the resul of user-expand
-zstyle ':completion:*:user-expand:*' tag-order '!original'
+# omit original and all expansions when showing the result of user-expand
+zstyle ':completion:*:user-expand:*' tag-order '!original all-expansions'
 
 # make use-expand perform as last, when needed
 zstyle ':completion:*' completer \
