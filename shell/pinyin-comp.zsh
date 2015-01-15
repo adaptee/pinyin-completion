@@ -13,7 +13,7 @@ function _pinyin_comp()
 # Refer to http://zshwiki.org/home/examples/compsys/general
 #
 #
-if [[ -n `whence -f` ]]
+if [[ -n `whence -f _force_rehash` ]]
 then
         _force_rehash() {
                 (( CURRENT == 1 )) && rehash
