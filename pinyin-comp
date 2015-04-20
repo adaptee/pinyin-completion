@@ -240,7 +240,7 @@ if __name__ == '__main__':
 
         # one match is found
         if i == len(basename_acronym)  :
-            candicate = os.path.join(dirname, entry).replace("./", "")
+            candicate = os.path.join(dirname, entry).replace("^./", "")
             # if the caller is only interested with folders
             if dironly == "x-d" and not os.path.isdir(candicate):
                 continue
