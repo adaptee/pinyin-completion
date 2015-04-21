@@ -6,7 +6,11 @@ function _pinyin_comp()
     # this looks weird, bug IFS='\n' does not work in interactive shell
     local IFS=$'\n'
 
-    reply=($(pinyin-comp 0 $*) $*)
+    if [ "$words[1]" = "cd" ] ; then
+            reply=($(pinyin-comp x-d $*) $*)
+    else
+            reply=($(pinyin-comp 0 $*) $*)
+    fi
 }
 
 # force rehash when command not found
