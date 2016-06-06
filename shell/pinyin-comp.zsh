@@ -1,5 +1,10 @@
 
 # use pinyin-comp to perform completion based upon pinyin acronym
+function _force_rehash() {
+  (( CURRENT == 1 )) && rehash
+  return 1
+}
+
 function _pinyin_comp()
 {
     # chsdir print one candidate per line
