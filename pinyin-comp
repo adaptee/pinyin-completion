@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/python
 # -*- coding:utf-8 -*-
 """
 complete path by acronym of pinyin initials
@@ -49,65 +49,63 @@ import sys
 import locale
 import re
 
-import pinyin
+from pinyin_completion import pinyin_initial
 
 _, default_encoding = locale.getdefaultlocale()
 
 
 DOUBLE_WIDTH = {
-                    u"～" : u"~" ,
-                    u"！" : u"!" ,
-                    u"＠" : u"@" ,
-                    u"＃" : u"#" ,
-                    u"＄" : u"$" ,
-                    u"％" : u"%" ,
-                    u"＆" : u"&" ,
-                    u"＊" : u"*" ,
-                    u"（" : u"(" ,
-                    u"）" : u")" ,
-                    u"＿" : u"_" ,
-                    u"－" : u"-" ,
-                    u"＋" : u"+" ,
-                    u"［" : u"[" ,
-                    u"］" : u"]" ,
-                    u"＜" : u"<" ,
-                    u"＞" : u">" ,
-                    u"？" : u"?" ,
-                    u"，" : u"," ,
-                    u"。" : u"." ,
-                    u"／" : u"/" ,
-                    u"、" : "u"  ,
-                }
+    "～": "~",
+    "！": "!",
+    "＠": "@",
+    "＃": "#",
+    "＄": "$",
+    "％": "%",
+    "＆": "&",
+    "＊": "*",
+    "（": "(",
+    "）": ")",
+    "＿": "_",
+    "－": "-",
+    "＋": "+",
+    "［": "[",
+    "］": "]",
+    "＜": "<",
+    "＞": ">",
+    "？": "?",
+    "，": ",",
+    "。": ".",
+    "／": "/",
+    "、": "u",
+}
 
 # fuzzy pinyin
-FUZZY = {}
-try:
-    FUZZY = eval( os.getenv("FUZZY") )
-    FUZZY.keys()
-except StandardError:
-    FUZZY = {}
+FUZZY = os.environ.get("FUZZY", {})
+
 
 def transform_double_width(uni_char):
-    "transform double-width char into its single-width equivalent  "
-    try :
+    "transform double-width char into its single-width equivalent"
+    try:
         return DOUBLE_WIDTH[uni_char]
     except KeyError:
         return uni_char
 
+
 def fuzzynize(pinyin):
     "fuzzy one pinyin to another"
-    try :
+    try:
         return FUZZY[pinyin]
     except KeyError:
         return pinyin
 
+
 def get_pinyin_initials(uni_char):
     "get the initial of Chinese pinyin"
     try:
-        pinyin_initial = pinyin.pinyin_initial[uni_char]
-        return "".join(pinyin_initial)
+        return "".join(pinyin_initial[uni_char])
     except KeyError:
         return uni_char
+
 
 def acronymize(uni_char):
     "get single-byte acronym for one unicode char"
@@ -116,84 +114,66 @@ def acronymize(uni_char):
     uni_char = transform_double_width(uni_char)
 
     # if ascii, return immediately
-    if uni_char <  u"\x80" :
+    if uni_char < "\x80":
         return uni_char
 
     pinyin_initial = get_pinyin_initials(uni_char)
 
     # special case for chars having polyphone
     if len(pinyin_initial) > 1:
-        return u"`%s`" % pinyin_initial
+        return "`%s`" % pinyin_initial
 
     # for most cases.
-    return fuzzynize( pinyin_initial )
+    return fuzzynize(pinyin_initial)
+
 
 def get_acronym(text):
     "get acronym for text string"
-    text = unicodelize(text)
 
-    acronym = u""
+    acronym = ""
 
     for char in text:
         acronym += acronymize(char)
 
     return acronym
 
-def unicodelize(text):
-    "try to convert string into unicode string."
-    if not isinstance(text, unicode):
-        try:
-            return unicode(text, default_encoding)
-        except UnicodeDecodeError:
-            pass
-
-    return text
-
-def stringlize(text):
-    "try to convert unicode string back into string"
-    if isinstance(text, unicode):
-        try:
-            return text.encode(default_encoding)
-        except UnicodeEncodeError:
-            pass
-
-    return text
 
 def expand_leading_tilda(path):
     "expand leading ~/ or ~user/"
     return os.path.expanduser(path)
 
-def escape_string(candicate):
-    return re.sub(r'([\" |\'&\[\]\(\)])', r'\\\1',candicate)
 
-if __name__ == '__main__':
+def escape_string(candicate):
+    return re.sub(r"([\" |\'&\[\]\(\)])", r"\\\1", candicate)
+
+
+if __name__ == "__main__":
 
     # chsdir <dirattr> <already_input_part>
-    if len(sys.argv) != 3 :
+    if len(sys.argv) != 3:
         sys.exit(1)
 
     dironly = sys.argv[1]
 
-    path = sys.argv[2].replace("\\","")
+    path = sys.argv[2].replace("\\", "")
     path = expand_leading_tilda(path)
-    path = unicodelize(path)
     # support fuzzy pinyin
-    path = "".join( [ fuzzynize(x) for x in path] )
+    path = "".join([fuzzynize(x) for x in path])
 
-    index          = None
+    index = None
     effective_path = path
 
     # deal with special form such as  'xxx/zj1'
-    if len(path) > 1 and '0' < path[-1] <= '9':
-        index          = int(path[-1])
+    if len(path) > 1 and "0" < path[-1] <= "9":
+        index = int(path[-1])
         effective_path = path[:-1]
 
-    dirname            = os.path.dirname(path)
-    basename           = os.path.basename(path)
+    dirname = os.path.dirname(path)
+    basename = os.path.basename(path)
     effective_basename = os.path.basename(effective_path)
 
-    if not dirname :
-        dirname = u"./"
+    if not dirname:
+        dirname = "./"
 
     # get all top-level subentries(non-recursive)
     try:
@@ -202,67 +182,65 @@ if __name__ == '__main__':
         sys.exit(0)
 
     # if an entry with the exact basename already exist, do nothing
-    if basename in entries or effective_basename in entries :
+    if basename in entries or effective_basename in entries:
         sys.exit(0)
 
-    basename_acronym = get_acronym(effective_basename).replace("\\","")
+    basename_acronym = get_acronym(effective_basename).replace("\\", "")
 
     reply = []
     regex = re.compile(r"^\./")
 
     for entry in entries:
 
-        entry_acronym = get_acronym(entry).replace("\\","")
+        entry_acronym = get_acronym(entry).replace("\\", "")
 
         # ignore entry which does not contain Chinese character.
-        if entry_acronym == entry :
+        if entry_acronym == entry:
             continue
 
         i = j = 0
 
-        while i < len(basename_acronym) and j < len(entry_acronym) :
+        while i < len(basename_acronym) and j < len(entry_acronym):
 
             # dealing with polyphone
             if entry_acronym[j] == "`":
-                end = entry_acronym.index("`", j+1)
-                if entry_acronym.find( basename_acronym[i], j, end ) > 0 :
+                end = entry_acronym.index("`", j + 1)
+                if entry_acronym.find(basename_acronym[i], j, end) > 0:
                     i += 1
                     j = end + 1
                     continue
             else:
-                if ( basename_acronym[i] == entry_acronym[j] or
-                     basename_acronym[i] == "?" ):
+                if (
+                    basename_acronym[i] == entry_acronym[j]
+                    or basename_acronym[i] == "?"
+                ):
                     i += 1
                     j += 1
                     continue
 
-            if basename_acronym[i] != entry[i] :
+            if basename_acronym[i] != entry[i]:
                 break
 
         # one match is found
-        if i == len(basename_acronym)  :
-            candicate = regex.sub("",os.path.join(dirname, entry))
+        if i == len(basename_acronym):
+            candicate = regex.sub("", os.path.join(dirname, entry))
             # if the caller is only interested with folders
             if dironly == "x-d" and not os.path.isdir(candicate):
                 continue
 
-            reply.append( candicate )
+            reply.append(candicate)
 
-    try:
-        locale.setlocale(locale.LC_ALL, "")
-    except StandardError:
-        pass
+    locale.setlocale(locale.LC_ALL, "")
 
     # when dealing with outer world, always use native encoding
-    reply = [ stringlize(x) for x in reply]
-    reply.sort( key=locale.strxfrm )
+    reply.sort(key=locale.strxfrm)
 
-    if index :
+    if index:
         try:
-            print (escape_string(reply[index - 1]))
+            print(escape_string(reply[index - 1]))
         except IndexError:
             # return the last candidate when index is out of range
             pass
     else:
         for candicate in reply:
-            print escape_string(candicate)
+            print(candicate)
