@@ -1,15 +1,15 @@
 #!/usr/bin/env python
-# vim: set fileencoding=utf-8 :
+import os
+
+os.chdir(os.path.dirname(__file__))
 
 pinyin = {}
 pinyin_initial = {}
 
 if __name__ == "__main__":
-
     lines = open("unicode-han-pinyin.txt").readlines()
 
     for line in lines:
-
         line = line[:-1] if line[-1] == "\n" else line
 
         unichar, accent = line.split("=")
@@ -45,6 +45,6 @@ if __name__ == "__main__":
     print("")
 
     print("pinyin_initial = {")
-    for key in pinyin_initial.keys():
-        print("u'%s' : %s ," % (key.encode("utf-8"), pinyin_initial[key]))
+    for key in pinyin_initial:
+        print(f'    "{key}": {pinyin_initial[key]},')
     print("}")
