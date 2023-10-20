@@ -1,0 +1,47 @@
+---
+"on":
+  push:
+    paths-ignore:
+      - "**.md"
+  pull_request:
+    paths-ignore:
+      - "**.md"
+  workflow_dispatch:
+
+env:
+  PYTHONUTF8: "1"
+  python-version: 3.x
+  cache: pip
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: molovo/revolver
+          path: revolver
+      - uses: actions/checkout@v4
+        with:
+          repository: zdharma-continuum/zunit
+          path: zunit
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{env.python-version}}
+          cache: ${{env.cache}}
+          cache-dependency-path: |-
+            requirements.txt
+      - name: Install dependencies
+        run: |
+          sudo apt-get -y update
+          sudo apt-get -y install zsh
+          pip install -r requirements.txt
+          cd zunit
+          zsh -c -l ./build.zsh && install -D zunit -t ~/.local/bin
+          cd ../revolver
+          install -D revolver -t ~/.local/bin
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      - name: Test
+        run: |
+          zunit

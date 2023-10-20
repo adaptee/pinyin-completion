@@ -1,0 +1,11 @@
+#shellcheck disable=all
+cd "$(dirname "$0")/../.." || exit 1
+. ./*.plugin.zsh
+_test() {
+  reply=()
+  words=($@)
+  _pinyin_comp $2
+  print -nl $reply
+  return $#reply
+}
+# ex: filetype=zsh

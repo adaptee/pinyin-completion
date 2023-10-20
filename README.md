@@ -1,48 +1,88 @@
-pinyin-completion
-========
+# pinyin-completion
+
+[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/petronny/pinyin-completion/main.svg)](https://results.pre-commit.ci/latest/github/petronny/pinyin-completion/main)
+[![github/workflow](https://github.com/petronny/pinyin-completion/actions/workflows/main.yml/badge.svg)](https://github.com/petronny/pinyin-completion/actions)
+
+[![github/downloads](https://shields.io/github/downloads/petronny/pinyin-completion/total)](https://github.com/petronny/pinyin-completion/releases)
+[![github/downloads/latest](https://shields.io/github/downloads/petronny/pinyin-completion/latest/total)](https://github.com/petronny/pinyin-completion/releases/latest)
+[![github/issues](https://shields.io/github/issues/petronny/pinyin-completion)](https://github.com/petronny/pinyin-completion/issues)
+[![github/issues-closed](https://shields.io/github/issues-closed/petronny/pinyin-completion)](https://github.com/petronny/pinyin-completion/issues?q=is%3Aissue+is%3Aclosed)
+[![github/issues-pr](https://shields.io/github/issues-pr/petronny/pinyin-completion)](https://github.com/petronny/pinyin-completion/pulls)
+[![github/issues-pr-closed](https://shields.io/github/issues-pr-closed/petronny/pinyin-completion)](https://github.com/petronny/pinyin-completion/pulls?q=is%3Apr+is%3Aclosed)
+[![github/discussions](https://shields.io/github/discussions/petronny/pinyin-completion)](https://github.com/petronny/pinyin-completion/discussions)
+[![github/milestones](https://shields.io/github/milestones/all/petronny/pinyin-completion)](https://github.com/petronny/pinyin-completion/milestones)
+[![github/forks](https://shields.io/github/forks/petronny/pinyin-completion)](https://github.com/petronny/pinyin-completion/network/members)
+[![github/stars](https://shields.io/github/stars/petronny/pinyin-completion)](https://github.com/petronny/pinyin-completion/stargazers)
+[![github/watchers](https://shields.io/github/watchers/petronny/pinyin-completion)](https://github.com/petronny/pinyin-completion/watchers)
+[![github/contributors](https://shields.io/github/contributors/petronny/pinyin-completion)](https://github.com/petronny/pinyin-completion/graphs/contributors)
+[![github/commit-activity](https://shields.io/github/commit-activity/w/petronny/pinyin-completion)](https://github.com/petronny/pinyin-completion/graphs/commit-activity)
+[![github/last-commit](https://shields.io/github/last-commit/petronny/pinyin-completion)](https://github.com/petronny/pinyin-completion/commits)
+[![github/release-date](https://shields.io/github/release-date/petronny/pinyin-completion)](https://github.com/petronny/pinyin-completion/releases/latest)
+
+[![github/license](https://shields.io/github/license/petronny/pinyin-completion)](https://github.com/petronny/pinyin-completion/blob/main/LICENSE)
+[![github/languages](https://shields.io/github/languages/count/petronny/pinyin-completion)](https://github.com/petronny/pinyin-completion)
+[![github/languages/top](https://shields.io/github/languages/top/petronny/pinyin-completion)](https://github.com/petronny/pinyin-completion)
+[![github/directory-file-count](https://shields.io/github/directory-file-count/petronny/pinyin-completion)](https://github.com/petronny/pinyin-completion)
+[![github/code-size](https://shields.io/github/languages/code-size/petronny/pinyin-completion)](https://github.com/petronny/pinyin-completion)
+[![github/repo-size](https://shields.io/github/repo-size/petronny/pinyin-completion)](https://github.com/petronny/pinyin-completion)
+[![github/v](https://shields.io/github/v/release/petronny/pinyin-completion)](https://github.com/petronny/pinyin-completion)
 
 Complete path by acronym of pinyin initials.
 
-用拼音补全命令行中的中文名称和路径
+用拼音补全命令行中的中文名称和路径。
 
-This is a fork for enhancement and bugs fixing.
+```sh
+% ls
+自然语言处理  '自然语言处理 课程结课作业.md'
+% ls zr<TAB>
+expansions
+自然语言处理                   自然语言处理\ 课程结课作业.md
+% cd zr<TAB>
+% cd 自然语言处理/
+```
 
-### Enhancement
+## Dependencies
 
-* Auto escaping for special characters.
-* Fixed missing `_force_rehash()` error.
-* Removed a unnecessary completion in zsh.
+- [pypinyin](https://github.com/mozillazg/python-pinyin)
 
-### Sample
+## Install
 
-	$ ls .
-	SVN培训  全球眼  浙江建行  浙江农信
-	$ cd S     <tab>             进入[SVN培训]
-	$ cd q     <tab>             进入[全球眼]
-	$ cd z     <tab>             自动补全[浙江]
-	$ cd zj    <tab><tab>        提示[浙江建行 浙江农信]备选
-	$ cd zj1   <tab>             进入[浙江建行]
-	$ cd zj2   <tab>             进入[浙江农信]
-	$ cd 浙江j <tab>             进入[浙江建行]
-	$ cd zjj   <tab>             进入[浙江建行]
+### Bash
 
-### Install
+```sh
+. /the/path/of/this/plugin/pinyin-completion.plugin.bash
+```
 
-	git clone git@github.com:petronny/pinyin-completion.git
-	cd pinyin-completion
-	sudo ./setup.py install
+### Zsh
 
-### Usage
+This plugin respects
+[zsh plugin standard](https://github.com/zdharma-continuum/Zsh-100-Commits-Club/blob/master/Zsh-Plugin-Standard.adoc),
+so if you use any plugin manager and follow the instructions of your plugin
+manager, it can be installed correctly. Otherwise:
 
-For Bash users, source `shell/pinyin-comp.bash` in your `~/.bashrc`
+```zsh
+. /the/path/of/this/plugin/pinyin-completion.plugin.zsh
+```
 
-For Zsh users, source `shell/pinyin-comp.zsh` in your `~/.zshrc`
+## Configure
 
-### Others
+If you cannot distinguish `n` and `l`, try:
 
-`tools/table-generator.py` is used to generate `pinyin_initial.py`, based upon the contents of `tools/unicode-han-pinyin.txt`.
+```sh
+declare -A FUZZY=(
+    [n]=l
+)
+```
 
-If you feel the default pinyin_initial.py is too big, which cause sensible delay and un-wanted ambigurous, just use you favourite editor to modify `tools/unicode-han-pinyin.txt`, then regenerate `pinyin_initial.py` by running:
+Then always use `l`.
 
-	$ ./table-generate.py > pinyin_initial.py
+By default, this plugin will change Chinese punctuation to English punctuation.
+You can add more punctuation maps:
 
+```sh
+declare -A FUZZY=(
+    […]=...
+)
+```
+
+Then use `...` to search the file whose name contains `…`.
